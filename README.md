@@ -125,7 +125,9 @@ Re-deploying API Gateway to make sure changes are applied
 ```
 
 
-After CloudFormation is updated and API Gateway redeployed let's test it. Just to be on the safe side wait a minute since there is a web cache and several times I got a response from the old configuration.
+After CloudFormation is updated and API Gateway redeployed let's test it. 
+
+⚠️ **Watch out**, my experience shows that several first requests are handled by the old configuration! That's strange, I don't know why is that?
 
 Execute the same `send-request.sh`. This time we get an error:
 ```XML
@@ -182,7 +184,7 @@ And now it gets interesting!
 
 1. Go to the `cf-api.yaml` file  and uncomment CONFIGURATION 3.
 1. Now execute `cf-update-api.sh` and wait a moment.
-1. After it's done send the test request again. Usually first on is executed by the cached old configuration.
+1. After it's done send the test request again. Usually several first responses are executed by the cached old configuration. (It's interesting on it's own why that happens?)
 1. And here is the response of the `send-request.sh`.
 
 
