@@ -26,7 +26,7 @@ There are also other helper scripts:
 * `view-messages.sh` - is checking for messages in the SQS queue
 * `purge-messages.sh` - deletes all messages in the SQS queue
 
-ℹ️ All scripts fetch unique values for CloudFormation stack - so **you don't need to modify them** after your deployment.
+ℹ️ All scripts fetch unique values from CloudFormation stack, the `Outputs` section - so **you don't need to modify scripts** after you deploy this sample to your AWS Account.
 
 ## 3. Test the endpoint
 
