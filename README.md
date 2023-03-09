@@ -1,6 +1,7 @@
 # universal-www-form-urlencoded
 API Gateway REST endpoint that transforms `x-www-form-urlencoded` payload into `JSON` and sends to SQS queue as a message.
 
+![Diagram](./diagram.png)
 
 This code doesn't work. It's here to illustrate the problem.
 
