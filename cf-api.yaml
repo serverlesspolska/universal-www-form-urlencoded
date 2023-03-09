@@ -68,81 +68,34 @@ Resources:
               - 'arn:aws:apigateway:${AWS::Region}:sqs:path/${AWS::AccountId}/${QueueName}'
               - QueueName: !GetAtt SqsQueue.QueueName
         RequestTemplates:
-          #### 
-          # First of all this type 'application/json' is for JSON payloads and is not a case here
-          # it's here only because most of the people tried this and it works 
-          # which doesn't really help at all.
-          #
-          # application/json: |
-          #   Action=SendMessage&MessageBody=$input.body
-
-
           ####
           # CONFIGURATION 1
+          #   After URL encoding this works 100% - without any caveats, nothing is lost here.
           #
-          # This kinda works but:
-          # 1) doesn't include full payload in the SQS messages
-          # 2) doesn't convert  www-urlencoded data into JSON.
-          #
-          # Basically it's here just to prove that IAM role is correct!
-          #
-          application/x-www-form-urlencoded: |
-            Action=SendMessage&MessageBody=$input.body
+          # application/x-www-form-urlencoded: |
+          #  #set( $fullBody = $util.urlEncode($input.body) )
+          #  Action=SendMessage&MessageBody=$fullBody
 
           ####
           # CONFIGURATION 2
-          #
-          # This is a VTL script, which causes the problem
+          #   Static JSON provided as body - works 100%.
           #
           # application/x-www-form-urlencoded: |
-          #   ## Parses x-www-urlencoded data to JSON for AWS' API Gateway
-          #   ##
-          #   ## Author: Christian E Willman <christian@willman.io>
-
-          #   #if ( $context.httpMethod == "POST" )
-          #     #set( $requestBody = $input.path('$') )
-          #   #else
-          #     #set( $requestBody = "" )
-          #   #end
-
-          #   #set( $keyValuePairs = $requestBody.split("&") )
-          #   #set( $params = [] )
-
-          #   ## Filter empty key-value pairs
-          #   #foreach( $kvp in $keyValuePairs )
-          #     #set( $operands = $kvp.split("=") )
-
-          #     #if( $operands.size() == 1 || $operands.size() == 2 )
-          #       #set( $success = $params.add($operands) )
-          #     #end
-          #   #end
-
-          #   Action=SendMessage&MessageBody=
-          #   {
-          #     #foreach( $param in $params )
-          #       #set( $key = $util.urlDecode($param[0]) )
-
-          #       #if( $param.size() > 1 )
-          #         #set( $value = $util.urlDecode($param[1]) )
-          #       #else
-          #         #set( $value = "" )
-          #       #end
-
-          #       "$key": "$value"#if( $foreach.hasNext ),#end
-          #     #end
-          #   }
+          #  Action=SendMessage&MessageBody={
+          #     "type": "test",
+          #     "foo": "barbarbar"
+          #  }
 
           ####
           # CONFIGURATION 3
+          #   Fixed VTL script, works in all cases.
+          #   YOU CANNOT HAVE ANY WHITESPACES AND PAYLOAD MUST BE URLENCODED.
           #
-          # 
-          #
-          # application/x-www-form-urlencoded: |
-          #   Action=SendMessage&MessageBody={
-          #       "type": "test",
-          #       "foo": "bar"
-          #   }
-          
+          application/x-www-form-urlencoded: |
+            #if($context.httpMethod=="POST")#set($requestBody=$input.path('$'))#else#set($requestBody="")#end#set($keyValuePairs=$requestBody.split("&"))#set($params=[])#foreach($kvp in $keyValuePairs)#set($operands=$kvp.split("="))#if($operands.size()==1||$operands.size()==2)#set($success=$params.add($operands))#end#end
+            #set($rawJSON="{#foreach($param in $params)#set($key=$util.urlDecode($param[0]))#if($param.size()>1)#set($value=$util.urlDecode($param[1]))#else#set($value="""")#end""$key"":""$value""#if($foreach.hasNext),#end#end}")
+            #set($fullBodyAsQueryParameter=$util.urlEncode($rawJSON))
+            Action=SendMessage&MessageBody=$fullBodyAsQueryParameter
 
         PassthroughBehavior: NEVER
         IntegrationResponses:
