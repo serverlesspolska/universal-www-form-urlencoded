@@ -26,7 +26,7 @@ There are also other helper scripts:
 * `view-messages.sh` - is checking for messages in the SQS queue
 * `purge-messages.sh` - deletes all messages in the SQS queue
 
-ℹ️ All scripts those scripts fetch unique values for CloudFormation stack - so **you don't need to modify them** after your deployment.
+ℹ️ All scripts fetch unique values for CloudFormation stack - so **you don't need to modify them** after your deployment.
 
 ## 3. Test the endpoint
 
@@ -37,7 +37,7 @@ I've prepared three configurations to present the problem fully. The First one i
 ### 3.1 Test run without VTL to prove that IAM is configured correctly
 
 This configuration doesn't convert payload to JSON, but shows that Role is defined correctly and there is a communication between this API endpoint and SQS.
-```
+```YAML
 application/x-www-form-urlencoded: |
   Action=SendMessage&MessageBody=$input.body
 ```
