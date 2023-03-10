@@ -6,9 +6,9 @@ API Gateway REST endpoint that transforms `x-www-form-urlencoded` payload into `
 
 # Great success
 
-@afronsky was able to fix the problem, and described the solution in his [pull request](pull/1). Please check out his explaination.
+[@afronsky](https://github.com/afronski) was able to fix the problem, and described the solution in his pull request https://github.com/serverlesspolska/universal-www-form-urlencoded/pull/1. Please check out his explanation.
 
-Thank you very much @afronsky for you help 🙏
+Thank you very much [@afronsky](https://github.com/afronski) for you help 🙏
 
 
 ## Working solution
