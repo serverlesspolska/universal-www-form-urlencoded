@@ -3,9 +3,28 @@ API Gateway REST endpoint that transforms `x-www-form-urlencoded` payload into `
 
 ![Diagram](./diagram.png)
 
-This code doesn't work. It's here to illustrate the problem.
 
-# How to start
+# Great success
+
+@afronsky was able to fix the problem, and described the solution in his [pull request](pull/1). Please check out his explaination.
+
+Thank you very much @afronsky for you help 🙏
+
+
+## Working solution
+The fix has been merged and can be tested by following those steps:
+
+1. Make all BASH scripts executable `chmod +x *.sh`
+1. Deploy solution using CloudFormation by executing `./cf-create-api.sh` script.
+1. Send a test message to the endpoint using `./send-request.sh`.
+1. View messages in the queue. Execute `./view-messages.sh` script.
+1. The end (remove stack by executing `./cf-delete-api.sh` script.
+
+
+# OUTDATED - Description of the problem with VTL
+
+For future reference I left the **not working** copy of the configuration in a file name `cf-api-not-working.yaml`, as it may shed some light on how bizarre VTL is. 
+
 
 ## 1. API Gateway logging
 If you don't have this enabled check out the [ApiGwLogginConfig](ApiGwLogginConfig) directory and deploy CloudFormation defined there.
@@ -224,5 +243,3 @@ And there is a message in the queue, execute `view-messages.sh`:
   ]
 }
 ```
-
-## Why it doesn't work with VTL but works with the string which is identical the the VTL output?

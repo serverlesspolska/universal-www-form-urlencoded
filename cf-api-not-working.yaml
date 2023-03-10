@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
-Description: API Gateway REST API to SQS queue.
+Description: API Gateway HTTP API to SQS.
 
 Parameters:
   Stage:
@@ -43,7 +43,7 @@ Resources:
   Api:
     Type: AWS::ApiGateway::RestApi
     Properties:
-      Description: REST API Endpoint to receive payloads and send them to SQS
+      Description: REST API Endpoint to receive payloads and queue in SQS
       Name: !Ref ServiceName
       
   ResourceWebhook:
@@ -68,20 +68,81 @@ Resources:
               - 'arn:aws:apigateway:${AWS::Region}:sqs:path/${AWS::AccountId}/${QueueName}'
               - QueueName: !GetAtt SqsQueue.QueueName
         RequestTemplates:
+          #### 
+          # First of all this type 'application/json' is for JSON payloads and is not a case here
+          # it's here only because most of the people tried this and it works 
+          # which doesn't really help at all.
+          #
+          # application/json: |
+          #   Action=SendMessage&MessageBody=$input.body
+
+
           ####
-          #   This VTL (Velocity) code was created by Christian E Willman <christian@willman.io> and taken from his repo
-          #   at https://github.com/willmanio/aws-api-gateway-bodyparser
+          # CONFIGURATION 1
           #
-          #   Due to the problems described in README.md Wojciech Garoński applied a fix that allows AWS API Gateway 
-          #   properly convert x-www-urlencoded data into stringified JSON
+          # This kinda works but:
+          # 1) doesn't include full payload in the SQS messages
+          # 2) doesn't convert  www-urlencoded data into JSON.
           #
-          #   This ugly formatting is necessary since VTL sucks!
+          # Basically it's here just to prove that IAM role is correct!
           #
           application/x-www-form-urlencoded: |
-            #if($context.httpMethod=="POST")#set($requestBody=$input.path('$'))#else#set($requestBody="")#end#set($keyValuePairs=$requestBody.split("&"))#set($params=[])#foreach($kvp in $keyValuePairs)#set($operands=$kvp.split("="))#if($operands.size()==1||$operands.size()==2)#set($success=$params.add($operands))#end#end
-            #set($rawJSON="{#foreach($param in $params)#set($key=$util.urlDecode($param[0]))#if($param.size()>1)#set($value=$util.urlDecode($param[1]))#else#set($value="""")#end""$key"":""$value""#if($foreach.hasNext),#end#end}")
-            #set($fullBodyAsQueryParameter=$util.urlEncode($rawJSON))
-            Action=SendMessage&MessageBody=$fullBodyAsQueryParameter
+            Action=SendMessage&MessageBody=$input.body
+
+          ####
+          # CONFIGURATION 2
+          #
+          # This is a VTL script, which causes the problem
+          #
+          # application/x-www-form-urlencoded: |
+          #   ## Parses x-www-urlencoded data to JSON for AWS' API Gateway
+          #   ##
+          #   ## Author: Christian E Willman <christian@willman.io>
+
+          #   #if ( $context.httpMethod == "POST" )
+          #     #set( $requestBody = $input.path('$') )
+          #   #else
+          #     #set( $requestBody = "" )
+          #   #end
+
+          #   #set( $keyValuePairs = $requestBody.split("&") )
+          #   #set( $params = [] )
+
+          #   ## Filter empty key-value pairs
+          #   #foreach( $kvp in $keyValuePairs )
+          #     #set( $operands = $kvp.split("=") )
+
+          #     #if( $operands.size() == 1 || $operands.size() == 2 )
+          #       #set( $success = $params.add($operands) )
+          #     #end
+          #   #end
+
+          #   Action=SendMessage&MessageBody=
+          #   {
+          #     #foreach( $param in $params )
+          #       #set( $key = $util.urlDecode($param[0]) )
+
+          #       #if( $param.size() > 1 )
+          #         #set( $value = $util.urlDecode($param[1]) )
+          #       #else
+          #         #set( $value = "" )
+          #       #end
+
+          #       "$key": "$value"#if( $foreach.hasNext ),#end
+          #     #end
+          #   }
+
+          ####
+          # CONFIGURATION 3
+          #
+          # 
+          #
+          # application/x-www-form-urlencoded: |
+          #   Action=SendMessage&MessageBody={
+          #       "type": "test",
+          #       "foo": "bar"
+          #   }
+          
 
         PassthroughBehavior: NEVER
         IntegrationResponses:
