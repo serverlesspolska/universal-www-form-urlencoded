@@ -45,6 +45,9 @@ Resources:
     Properties:
       Description: REST API Endpoint to receive payloads and send them to SQS
       Name: !Ref ServiceName
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
       
   ResourceWebhook:
     Type: 'AWS::ApiGateway::Resource'
